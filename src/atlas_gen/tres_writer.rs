@@ -13,7 +13,7 @@ region = Rect2({x}, {y}, {w}, {h})
 pub fn write_gd_atlas_resource(output_path:&str, img_path:&str, x:usize, y:usize, w:usize, h:usize) -> io::Result<()> {
 	let mut file_content = String::from(ATLAS_RESOURCE_TEMPLATE);
 	// Godot doesn't like backslashes. Convert them to slashes here.
-	file_content = file_content.replace("{RES_PATH}", &("res://".to_owned() + &output_path.replace(r"\", "/")));
+	file_content = file_content.replace("{RES_PATH}", &("res://".to_owned() + &output_path.replace('\\', "/")));
 	file_content = file_content.replace("{x}", &x.to_string());
 	file_content = file_content.replace("{y}", &y.to_string());
 	file_content = file_content.replace("{w}", &w.to_string());

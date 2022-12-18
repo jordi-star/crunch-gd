@@ -1,7 +1,7 @@
-use std::{path::PathBuf, fs::File};
+use std::{path::PathBuf};
 
 use crunch::{Item, Rect, pack};
-use image::{ImageBuffer, Rgba, RgbaImage, DynamicImage, GenericImageView, ImageResult};
+use image::{ImageBuffer, Rgba, RgbaImage, DynamicImage, GenericImageView};
 
 use crate::atlas_gen::tres_writer;
 
@@ -96,6 +96,7 @@ impl SpritePacker {
 			fail_count: 0,
 		}
 	}
+
 	pub fn add_image(&mut self, image:image::DynamicImage, path:PathBuf) -> bool {
 		let trimmed_rect = match trim_transparency(&image) {
 			Some(rect) => rect,

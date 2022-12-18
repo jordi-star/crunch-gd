@@ -1,11 +1,11 @@
 use clap::Arg;
-use crunch::{Rect, Item, pack};
+
 use glob::glob;
-use image::{DynamicImage, GenericImageView, RgbaImage, ImageBuffer, Rgba};
-use std::{fs::{File}, io::{self, Write}, path::{PathBuf, Path}};
+
+use std::{path::{PathBuf}};
 
 mod atlas_gen;
-use atlas_gen::packer::{ImageInfo, SpritePacker};
+use atlas_gen::packer::{SpritePacker};
 
 // TODO: Replace usize casts to try_into for better error handling. Image sizes might get large enough to overflow!
 fn main() {
@@ -45,19 +45,17 @@ fn main() {
 		)
 	);
 
-	let output_image_path:&str = &config.value_of("output_path").unwrap_or("atlas.png");
+	let output_image_path:&str = config.value_of("output_path").unwrap_or("atlas.png");
 	let mut input_folder = String::from(config.value_of("input_path").unwrap_or("./"));
 	if !input_folder.ends_with('/') {
 		input_folder += "/";
 	}
-	for dir_entry in glob(&(input_folder + "*.png")).expect("Invalid glob pattern") {
-		if let Ok(path) = dir_entry {
-			if path == PathBuf::from(output_image_path) {
-				continue;
-			}
-			let image = image::open(&path).unwrap();
-			packer.add_image(image, path);
+	for path in glob(&(input_folder + "*.png")).expect("Invalid glob pattern").flatten() {
+		if path == PathBuf::from(output_image_path) {
+			continue;
 		}
+		let image = image::open(&path).unwrap();
+		packer.add_image(image, path);
 	}
 
 	match packer.pack_sprites(output_image_path) {
