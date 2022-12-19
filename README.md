@@ -1,5 +1,5 @@
 # crunch-gd
-A texture packer designed for Godot using ChevyRay's crunch-rs
+A CLI texture packer designed for Godot using ChevyRay's [crunch-rs](https://github.com/chevyray/crunch-rs/)
 Automatically creates AtlasTexture resources from generated spritesheet.
 Designed for Godot 4.x: AtlasTextures generated may not work with older versions.
 

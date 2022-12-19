@@ -7,7 +7,6 @@ use std::{path::{PathBuf}};
 mod atlas_gen;
 use atlas_gen::packer::{SpritePacker};
 
-// TODO: Replace usize casts to try_into for better error handling. Image sizes might get large enough to overflow!
 fn main() {
 	let config = clap::App::new("crunch-gd")
 		.about("Generates spritesheets & associated AtlasTexture resources for Godot 4. Uses ChevyRay's crunch-rs for sprite packing.")
