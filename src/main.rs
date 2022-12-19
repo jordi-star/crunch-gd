@@ -7,6 +7,7 @@ use std::{path::{PathBuf}};
 mod atlas_gen;
 use atlas_gen::packer::{SpritePacker};
 
+// TODO: !Write Tests!
 fn main() {
 	let config = clap::App::new("crunch-gd")
 		.about("Generates spritesheets & associated AtlasTexture resources for Godot 4. Uses ChevyRay's crunch-rs for sprite packing.")
