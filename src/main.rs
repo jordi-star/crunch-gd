@@ -87,7 +87,6 @@ fn main() {
 			println!("Sprites successfully packed. Saved atlas at: {}", output_image_path.to_string_lossy());
 		},
 		Err(err) => {
-			println!("EE");
 			println!("An error occured during sprite packing. {:?}", err);
 		}
 	}
