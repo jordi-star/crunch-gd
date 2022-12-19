@@ -10,6 +10,7 @@ Sprites successfully packed. Saved atlas at: godot-project/atlas.png
 
 > crunch-gd.exe --help
 FLAGS:
+        --gd3        Generate AtlasTexture resources for Godot 3.x intead of 4.0
         --help       Prints help information
     -V, --version    Prints version information
 

@@ -1,2 +1,2 @@
 pub mod packer;
-mod tres_writer;
+pub mod tres_writer;

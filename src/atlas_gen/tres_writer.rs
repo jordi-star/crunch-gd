@@ -3,7 +3,7 @@ use std::{fs::File, io::{Write, self}, path::{PathBuf, Path}};
 use crunch::Rect;
 use path_slash::PathBufExt;
 
-const ATLAS_RESOURCE_TEMPLATE:&str =
+const GD3_ATLAS_RESOURCE_TEMPLATE:&str =
 r#"[gd_resource type="AtlasTexture" load_steps=2 format=3]
 
 [ext_resource type="Texture2D" path="{RES_PATH}" id="1"]
@@ -14,19 +14,38 @@ region = Rect2({x}, {y}, {w}, {h})
 
 "#;
 
+const GD4_ATLAS_RESOURCE_TEMPLATE:&str =
+r#"[gd_resource type="AtlasTexture" load_steps=2 format=2]
+
+[ext_resource path="{RES_PATH}" type="Texture" id=1]
+
+[resource]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( {x}, {y}, {w}, {h} )
+
+"#;
+
+pub enum ResourceFormat {
+	Gd3,
+	Gd4,
+}
+
 pub struct AtlasResourceWriter {
 	godot_relative_path: PathBuf,
 	output_path: PathBuf,
+	format: ResourceFormat,
 }
 
 impl AtlasResourceWriter {
-	pub fn new(output_path: PathBuf) -> io::Result<Self> {
+	pub fn new(output_path: PathBuf, format: ResourceFormat) -> io::Result<Self> {
 		Ok(AtlasResourceWriter {
 			godot_relative_path: match Self::get_path_relative_to_gd_proj(&output_path) {
 				Ok(path) => path,
 				Err(err) => return Err(err),
 			},
 			output_path,
+			format,
 		})
 	}
 
@@ -61,7 +80,10 @@ impl AtlasResourceWriter {
 	}
 
 	pub fn write(&self, file_name:&str, region:&Rect) -> io::Result<()> {
-		let mut file_content = String::from(ATLAS_RESOURCE_TEMPLATE);
+		let mut file_content = match self.format {
+			ResourceFormat::Gd3 => String::from(GD3_ATLAS_RESOURCE_TEMPLATE),
+			ResourceFormat::Gd4 => String::from(GD4_ATLAS_RESOURCE_TEMPLATE),
+		};
 		// Godot doesn't like backslashes. Convert them to slashes here.
 		file_content = file_content.replace("{RES_PATH}", &("res://".to_owned() + &self.godot_relative_path.to_slash_lossy()));
 		file_content = file_content.replace("{x}", &region.x.to_string());

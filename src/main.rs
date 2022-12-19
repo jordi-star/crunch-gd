@@ -5,7 +5,7 @@ use glob::glob;
 use std::{path::{PathBuf}};
 
 mod atlas_gen;
-use atlas_gen::packer::{SpritePacker};
+use atlas_gen::{packer::{SpritePacker}, tres_writer::ResourceFormat};
 
 // TODO: !Write Tests!
 fn main() {
@@ -51,6 +51,11 @@ fn main() {
 			.help("Amount of empty space to put between each sprite")
 			.default_value("0")
 			.takes_value(true))
+		.arg(Arg::with_name("gd3")
+			.long("gd3")
+			.takes_value(false)
+			.display_order(5)
+			.help("Generate AtlasTexture resources for Godot 3.x intead of 4.0"))
 		.get_matches();
 
 	let mut packer = SpritePacker::new(
@@ -82,7 +87,14 @@ fn main() {
 		}
 	}
 
-	match packer.pack_sprites(&output_image_path) {
+	let format:ResourceFormat = if !config.is_present("gd3") {
+		ResourceFormat::Gd4
+	} else {
+		println!("Resources will be written for Godot 3.x");
+		ResourceFormat::Gd3
+	};
+
+	match packer.pack_sprites(&output_image_path, format) {
 		Ok(_) => {
 			println!("Sprites successfully packed. Saved atlas at: {}", output_image_path.to_string_lossy());
 		},

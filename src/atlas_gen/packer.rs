@@ -5,6 +5,8 @@ use image::{ImageBuffer, Rgba, RgbaImage, DynamicImage, GenericImageView};
 
 use crate::atlas_gen::tres_writer::{AtlasResourceWriter};
 
+use super::tres_writer::ResourceFormat;
+
 pub fn trim_transparency(image:&DynamicImage) -> Result<Rect, SpritePackingError> {
 	let mut rect:Rect = Rect::new(0, 0, image.width() as usize, image.height() as usize);
 	'find_nontransparent_x: for x in 0..image.width() {
@@ -102,7 +104,7 @@ impl SpritePacker {
 		Ok(())
 	}
 
-	pub fn pack_sprites(mut self, output_path:&PathBuf) -> Result<(), SpritePackingError> {
+	pub fn pack_sprites(mut self, output_path:&PathBuf, format:ResourceFormat) -> Result<(), SpritePackingError> {
 		let container = Rect::of_size(self.sheet_size.0, self.sheet_size.1);
 		let packed_items = match pack(container, self.images.clone()) {
 			Ok(all_items_packed) => all_items_packed,
@@ -124,7 +126,7 @@ impl SpritePacker {
 						return Err(SpritePackingError::InputSpriteTooLarge)
 					};
 				println!("Some items could not be fit into the target spritesheet size. Trying {:?}...", self.sheet_size);
-				return self.pack_sprites(output_path);
+				return self.pack_sprites(output_path, format);
 			},
 		};
 
@@ -132,7 +134,7 @@ impl SpritePacker {
 		if let Err(err) = std::fs::create_dir_all(output_path.with_file_name("")) {
 			return Err(SpritePackingError::IoError(err));
 		}
-		let atlas_writer = match AtlasResourceWriter::new(output_path.clone()) {
+		let atlas_writer = match AtlasResourceWriter::new(output_path.clone(), format) {
 			Ok(writer) => writer,
 			Err(err) => return Err(SpritePackingError::IoError(err)),
 		};
