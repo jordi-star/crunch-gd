@@ -12,6 +12,7 @@ fn main() {
 	let config = clap::App::new("crunch-gd")
 		.about("Generates spritesheets & associated AtlasTexture resources for Godot 4. Uses ChevyRay's crunch-rs for sprite packing.")
 		.author("jordi")
+		.version("1.11")
 		.arg(Arg::with_name("input_path")
 			.short("i")
 			.long("input_path")
