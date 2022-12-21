@@ -4,17 +4,6 @@ use crunch::Rect;
 use path_slash::PathBufExt;
 
 const GD3_ATLAS_RESOURCE_TEMPLATE:&str =
-r#"[gd_resource type="AtlasTexture" load_steps=2 format=3]
-
-[ext_resource type="Texture2D" path="{RES_PATH}" id="1"]
-
-[resource]
-atlas = ExtResource("1")
-region = Rect2({x}, {y}, {w}, {h})
-
-"#;
-
-const GD4_ATLAS_RESOURCE_TEMPLATE:&str =
 r#"[gd_resource type="AtlasTexture" load_steps=2 format=2]
 
 [ext_resource path="{RES_PATH}" type="Texture" id=1]
@@ -23,6 +12,17 @@ r#"[gd_resource type="AtlasTexture" load_steps=2 format=2]
 flags = 4
 atlas = ExtResource( 1 )
 region = Rect2( {x}, {y}, {w}, {h} )
+
+"#;
+
+const GD4_ATLAS_RESOURCE_TEMPLATE:&str =
+r#"[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="{RES_PATH}" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2({x}, {y}, {w}, {h})
 
 "#;
 
