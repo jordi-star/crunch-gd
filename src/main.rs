@@ -1,6 +1,7 @@
 use clap::Arg;
 
 use glob::glob;
+use notify::{RecommendedWatcher, RecursiveMode, Watcher, EventKind};
 
 use std::{path::{PathBuf}};
 
@@ -57,8 +58,14 @@ fn main() {
 			.takes_value(false)
 			.display_order(5)
 			.help("Generate AtlasTexture resources for Godot 3.x intead of 4.0"))
+		.arg(Arg::with_name("watch")
+			.long("watch")
+			.takes_value(false)
+			.display_order(6)
+			.help("While running, regenerate atlas when input files changed."))
 		.get_matches();
 
+	// Initialize packer instance
 	let mut packer = SpritePacker::new(
 		(
 			config.value_of("width").unwrap_or("512").parse().expect("Invalid width provided."),
@@ -67,6 +74,7 @@ fn main() {
 		config.value_of("padding").unwrap_or("0").parse().expect("Invalid padding provided."),
 	);
 
+	// Get output path
 	let mut output_image_path:PathBuf = PathBuf::from(config.value_of("output_path").unwrap_or("./atlas.png"));
 	if output_image_path.extension().is_none() {
 		println!("Invalid output path provided. Path must be a file path. Ex: \"project/atlas.png\"");
@@ -78,15 +86,6 @@ fn main() {
 		println!("Invalid input folder provided. Path must be a path to a folder. Ex: \"sprites_to_pack/\"");
 		return;
 	}
-	for path in glob(&(input_folder.to_string_lossy() + "*.png")).expect("Invalid glob pattern").flatten() {
-		if path == output_image_path {
-			continue;
-		}
-		let image = image::open(&path).unwrap();
-		if let Err(err) = packer.add_image(image, path.clone()) {
-			println!("Failed to pack {:?}. Error: {:?}", path, err);
-		}
-	}
 
 	let format:ResourceFormat = if !config.is_present("gd3") {
 		ResourceFormat::Gd4
@@ -95,12 +94,58 @@ fn main() {
 		ResourceFormat::Gd3
 	};
 
+	// Pack sprites
+	packer.find_input_files(&input_folder, &output_image_path);
 	match packer.pack_sprites(&output_image_path, format) {
 		Ok(_) => {
 			println!("Sprites successfully packed. Saved atlas at: {}", output_image_path.to_string_lossy());
 		},
 		Err(err) => {
 			println!("An error occured during sprite packing. {:?}", err);
+		}
+	}
+
+	// Watch for file changes and re-pack sprites when needed
+	if !config.is_present("watch") {
+		return;
+	}
+    let (tx, rx) = std::sync::mpsc::channel();
+
+	let mut watcher = RecommendedWatcher::new(tx, notify::Config::default()).expect("An error occured while enabling file watching.");
+
+	watcher.watch(input_folder.as_path(), RecursiveMode::NonRecursive).expect("An error occured while enabling file watching.");
+	println!("Watching for changes in input folder...");
+    'event_loop: for e in rx {
+		match e {
+			Ok(event) => {
+				if !event.kind.is_create() && !event.kind.is_modify() {
+					continue;
+				}
+				for path in event.paths {
+					if path == output_image_path {
+						continue 'event_loop;
+					}
+					if let Some(extension) = path.extension() {
+						if extension != "png" {
+							continue 'event_loop;
+						}
+					}
+				}
+				// Disable file watching while atlas is being generated.
+				watcher.unwatch(input_folder.as_path()).expect("An error occured while disabling file watch.");
+				packer.find_input_files(&input_folder, &output_image_path);
+				match packer.pack_sprites(&output_image_path, format) {
+					Ok(_) => {
+						println!("Sprites atlas regenerated.");
+					},
+					Err(err) => {
+						println!("An error occured during sprite packing. {:?}", err);
+					}
+				}
+				// Re-enable since files are now finalized.
+				watcher.watch(input_folder.as_path(), RecursiveMode::NonRecursive).expect("An error occured while enabling file watching.");
+			},
+			Err(err) => println!("An error occured while watching files... {:?}", err),
 		}
 	}
 }

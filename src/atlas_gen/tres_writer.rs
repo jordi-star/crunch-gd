@@ -26,6 +26,7 @@ region = Rect2({x}, {y}, {w}, {h})
 
 "#;
 
+#[derive(Copy, Clone)]
 pub enum ResourceFormat {
 	Gd3,
 	Gd4,

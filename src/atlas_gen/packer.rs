@@ -1,5 +1,6 @@
 use std::{path::PathBuf};
 
+use glob::glob;
 use crunch::{Item, Rect, pack};
 use image::{ImageBuffer, Rgba, RgbaImage, DynamicImage, GenericImageView};
 
@@ -104,10 +105,26 @@ impl SpritePacker {
 		Ok(())
 	}
 
-	pub fn pack_sprites(mut self, output_path:&PathBuf, format:ResourceFormat) -> Result<(), SpritePackingError> {
+	pub fn find_input_files(&mut self, input_folder:&PathBuf, output_image_path:&PathBuf) {
+		self.images.clear();
+		for path in glob(&(input_folder.to_string_lossy() + "*.png")).expect("Invalid glob pattern").flatten() {
+			if path == *output_image_path {
+				continue;
+			}
+			let image = image::open(&path).unwrap();
+			if let Err(err) = self.add_image(image, path.clone()) {
+				println!("Failed to pack {:?}. Error: {:?}", path, err);
+			}
+		}
+	}
+
+	pub fn pack_sprites(&mut self, output_path:&PathBuf, format:ResourceFormat) -> Result<(), SpritePackingError> {
 		let container = Rect::of_size(self.sheet_size.0, self.sheet_size.1);
 		let packed_items = match pack(container, self.images.clone()) {
-			Ok(all_items_packed) => all_items_packed,
+			Ok(all_items_packed) => {
+				self.fail_count = 0;
+				all_items_packed
+			},
 			Err(_) => {
 				self.fail_count += 1;
 				if self.fail_count > MAX_FAIL_COUNT {
